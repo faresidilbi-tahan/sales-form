@@ -304,7 +304,7 @@ async function submitForm() {
 
     const lineItems = resolvedItems.map(i => {
       const item = { variantId: i.variant.id, quantity: i.qty };
-      if (i.disc > 0) item.appliedDiscount = { value: String(i.disc), valueType: 'FIXED_AMOUNT', title: 'Agent discount' };
+      if (i.disc > 0) item.appliedDiscount = { value: i.disc, valueType: 'FIXED_AMOUNT', title: 'Agent discount' };
       return item;
     });
 
