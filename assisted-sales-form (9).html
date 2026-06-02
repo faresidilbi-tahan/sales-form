@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Assisted Sales — Abed Tahan</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #ffffff; --bg2: #f5f5f3; --bg3: #eeecea;
+  --text: #1a1a1a; --text2: #555; --text3: #999;
+  --border: #e0e0e0; --border2: #ccc;
+  --accent: #1a1a1a; --green: #2d6e1e; --green-bg: #edf5ea;
+  --red: #c0392b; --blue-bg: #eef4ff; --blue-border: #b3cfff; --blue-text: #1a4faa;
+  --radius: 8px; --radius-lg: 12px;
+}
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg2); color: var(--text); min-height: 100vh; padding: 28px 16px 60px; }
+.container { max-width: 680px; margin: 0 auto; }
+.page-header { margin-bottom: 28px; }
+.page-header h1 { font-size: 20px; font-weight: 600; }
+.page-header p { font-size: 13px; color: var(--text3); margin-top: 3px; }
+.card { background: var(--bg); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 20px; margin-bottom: 14px; }
+.section-title { font-size: 10px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 14px; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.row.full { grid-template-columns: 1fr; }
+@media (max-width: 500px) { .row { grid-template-columns: 1fr; } }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12px; font-weight: 500; color: var(--text2); }
+.field input, .field select, .field textarea { font-size: 14px; padding: 9px 11px; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--bg); color: var(--text); outline: none; transition: border-color 0.15s; font-family: inherit; }
+.field input:focus, .field select:focus, .field textarea:focus { border-color: #888; box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
+.field input.error, .field select.error { border-color: var(--red); }
+.field textarea { resize: vertical; min-height: 72px; }
+.product-line { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; margin-bottom: 10px; background: var(--bg2); }
+.line-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.line-badge { font-size: 11px; font-weight: 600; color: var(--text3); background: var(--bg3); padding: 2px 9px; border-radius: 99px; }
+.remove-btn { margin-left: auto; background: none; border: none; cursor: pointer; color: var(--text3); font-size: 18px; padding: 2px; }
+.remove-btn:hover { color: var(--red); }
+.line-grid { display: grid; grid-template-columns: 1fr 80px; gap: 10px; }
+.add-product-btn { width: 100%; padding: 10px; font-size: 13px; font-weight: 500; border: 1.5px dashed var(--border2); border-radius: var(--radius); background: transparent; color: var(--text2); cursor: pointer; transition: all 0.15s; font-family: inherit; }
+.add-product-btn:hover { border-color: var(--accent); color: var(--accent); }
+.summary { background: var(--bg2); border-radius: var(--radius); padding: 12px 14px; margin-top: 12px; font-size: 13px; display: none; }
+.sum-row { display: flex; justify-content: space-between; padding: 3px 0; color: var(--text2); }
+.sum-row.total { font-weight: 600; color: var(--text); border-top: 1px solid var(--border); margin-top: 6px; padding-top: 8px; font-size: 15px; }
+.tog-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.tog { font-size: 13px; padding: 7px 14px; border: 1px solid var(--border2); border-radius: 99px; background: var(--bg); color: var(--text2); cursor: pointer; transition: all 0.1s; font-family: inherit; }
+.tog.on { background: var(--blue-bg); border-color: var(--blue-border); color: var(--blue-text); font-weight: 500; }
+.submit-btn { width: 100%; padding: 14px; font-size: 16px; font-weight: 600; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); cursor: pointer; transition: opacity 0.15s; font-family: inherit; margin-top: 8px; }
+.submit-btn:hover { opacity: 0.85; }
+.submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.submit-btn.success { background: var(--green); }
+.status-msg { font-size: 13px; color: var(--text3); text-align: center; margin-top: 8px; min-height: 20px; }
+.result { display: none; margin-top: 20px; padding: 20px; background: var(--green-bg); border: 1px solid #b5d9ac; border-radius: var(--radius-lg); }
+.result.on { display: block; }
+.result h3 { font-size: 15px; font-weight: 600; color: var(--green); margin-bottom: 14px; }
+.result-link { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; margin-bottom: 8px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; color: var(--blue-text); text-decoration: none; }
+.result-link:hover { border-color: var(--blue-border); }
+.result-link span { word-break: break-all; flex: 1; }
+.tags { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 4px; }
+.tag { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+.error-box { padding: 10px 14px; background: #fef2f2; border: 1px solid #fecaca; border-radius: var(--radius); font-size: 13px; color: var(--red); margin-bottom: 14px; display: none; }
+.spinner { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <h1>Assisted Sales Form</h1>
+    <p>Abed Tahan · jad-b-2.myshopify.com</p>
+  </div>
+  <div class="error-box" id="error-box"></div>
+  <div class="card">
+    <div class="section-title">Agent & Source</div>
+    <div class="row">
+      <div class="field"><label>Agent *</label>
+        <select id="agent"><option value="">Select agent</option><option>Raed</option><option>Abed</option><option>Zeina</option><option>Chafic</option></select>
+      </div>
+      <div class="field"><label>Source channel *</label>
+        <select id="channel"><option value="">Select channel</option><option value="whatsapp">WhatsApp</option><option value="instagram">Instagram</option><option value="facebook">Facebook</option><option value="phone">Phone</option></select>
+      </div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Customer intent</label>
+        <select id="intent"><option value="">—</option><option value="price_inquiry">Price inquiry</option><option value="product_advice">Product advice</option><option value="stock_check">Stock check</option><option value="delivery_question">Delivery question</option><option value="installment_question">Installment question</option><option value="other">Other</option></select>
+      </div>
+      <div class="field"><label>Conversation ref</label><input type="text" id="ref" placeholder="Optional" /></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-title">Customer Details</div>
+    <div class="row">
+      <div class="field"><label>Full name *</label><input type="text" id="cname" placeholder="Customer name" /></div>
+      <div class="field"><label>Phone *</label><input type="text" id="cphone" placeholder="+961..." /></div>
+    </div>
+    <div class="row">
+      <div class="field"><label>Email</label><input type="email" id="cemail" placeholder="Optional" /></div>
+      <div class="field"><label>Delivery area *</label><input type="text" id="area" placeholder="e.g. Jounieh" /></div>
+    </div>
+    <div class="row full">
+      <div class="field"><label>Address / delivery notes</label><textarea id="address" placeholder="Street, building, floor, landmark..."></textarea></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-title">Products</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Enter the exact SKU for each product.</p>
+    <div id="product-lines"></div>
+    <button class="add-product-btn" onclick="addLine()" type="button">+ Add another product</button>
+    <div class="summary" id="summary">
+      <div id="sum-lines"></div>
+      <div class="sum-row"><span id="del-label">Delivery</span><span id="del-val">—</span></div>
+      <div class="sum-row total"><span>Order total</span><span id="sum-total">—</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-title">Payment & Fulfillment</div>
+    <div class="row">
+      <div class="field"><label>Payment method *</label>
+        <select id="payment"><option value="">Select method</option><option value="Money transfer">Money transfer</option><option value="creditcard">Credit Card</option><option value="Whish">Whish</option><option value="Cash on delivery">Cash on delivery</option></select>
+      </div>
+      <div class="field"><label>Delivery method *</label>
+        <select id="delivery" onchange="calcSummary()">
+          <option value="">Select method</option>
+          <option value="Standard, Inside Beirut">Standard, Inside Beirut ($5)</option>
+          <option value="Standard, Outside Beirut">Standard, Outside Beirut ($8)</option>
+          <option value="Pickup in store">Pickup in store (free)</option>
+          <option value="Express Delivery">Express Delivery ($9)</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:4px">
+      <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:10px">Options</div>
+      <div class="tog-group">
+        <button class="tog" onclick="togClick(this,'install')" type="button">Needs installation</button>
+        <button class="tog" onclick="togClick(this,'urgent')" type="button">Urgent delivery</button>
+        <button class="tog" onclick="togClick(this,'confirmed')" type="button">Customer confirmed</button>
+      </div>
+    </div>
+    <div style="margin-top:14px">
+      <div class="field"><label>Additional notes</label><textarea id="notes" placeholder="Anything else the team should know..."></textarea></div>
+    </div>
+  </div>
+  <button class="submit-btn" onclick="submitForm()" id="submit-btn">Create Draft Order</button>
+  <div class="status-msg" id="status-msg"></div>
+  <div class="result" id="result">
+    <h3 id="result-title">✓ Draft order created</h3>
+    <a class="result-link" id="r-admin" href="#" target="_blank"><span id="r-admin-text">Open in Shopify admin</span> ↗</a>
+    <a class="result-link" id="r-invoice" href="#" target="_blank"><span>Invoice / checkout link — send to customer</span> ↗</a>
+    <div class="tags" id="r-tags"></div>
+  </div>
+</div>
+<script>
+const WORKER = 'https://delicate-smoke-ce37.abedtahanpromotions.workers.dev/';
+const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyiVHiwNZx5xau_DQOIt90u1026hd_9GvdmE4YJmGWL1VPWO4OOI-Ahe_UZmiT_r3M3/exec';
+
+const FEES = { 'Standard, Inside Beirut': 5, 'Standard, Outside Beirut': 8, 'Pickup in store': 0, 'Express Delivery': 9 };
+let togState = { install: false, urgent: false, confirmed: false };
+let lc = 0, lines = {};
+
+function togClick(btn, k) { togState[k] = !togState[k]; btn.classList.toggle('on', togState[k]); }
+function gv(id) { const e = document.getElementById(id); return e ? e.value.trim() : ''; }
+function setStatus(msg) { document.getElementById('status-msg').textContent = msg; }
+function showError(msg) { const b = document.getElementById('error-box'); b.textContent = msg; b.style.display = 'block'; setTimeout(() => b.style.display = 'none', 8000); }
+
+async function shopifyGQL(query, variables) {
+  const res = await fetch(WORKER, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ query, variables })
+  });
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  const data = await res.json();
+  if (data.errors) throw new Error(data.errors[0].message);
+  return data.data;
+}
+
+function addLine() {
+  const id = ++lc;
+  lines[id] = true;
+  const wrap = document.getElementById('product-lines');
+  const d = document.createElement('div');
+  d.className = 'product-line'; d.id = `PL${id}`;
+  d.innerHTML = `
+    <div class="line-header">
+      <span class="line-badge">Item ${id}</span>
+      ${id > 1 ? `<button class="remove-btn" onclick="removeLine(${id})">✕</button>` : ''}
+    </div>
+    <div class="line-grid">
+      <div class="field">
+        <label style="font-size:12px">SKU *</label>
+        <input type="text" id="psku${id}" placeholder="e.g. CABLE VISION-WC 2026" />
+      </div>
+      <div class="field">
+        <label style="font-size:12px">Qty</label>
+        <input type="number" id="pqty${id}" value="1" min="1" oninput="calcSummary()" style="text-align:center" />
+      </div>
+    </div>`;
+  wrap.appendChild(d);
+}
+
+function removeLine(id) { document.getElementById(`PL${id}`)?.remove(); delete lines[id]; calcSummary(); }
+
+function calcSummary() {
+  const delivery = gv('delivery');
+  const fee = FEES[delivery] !== undefined ? FEES[delivery] : null;
+  const rows = [];
+  Object.keys(lines).forEach(id => {
+    const el = document.getElementById(`PL${id}`); if (!el) return;
+    const sku = document.getElementById(`psku${id}`)?.value?.trim();
+    const qty = parseInt(document.getElementById(`pqty${id}`)?.value) || 1;
+    if (sku) rows.push({ sku, qty });
+  });
+  const s = document.getElementById('summary');
+  if (!rows.length && fee === null) { s.style.display = 'none'; return; }
+  s.style.display = 'block';
+  document.getElementById('sum-lines').innerHTML = rows.map(r => `<div class="sum-row"><span>${r.sku} × ${r.qty}</span><span>—</span></div>`).join('');
+  if (fee !== null) {
+    document.getElementById('del-label').textContent = delivery;
+    document.getElementById('del-val').textContent = fee === 0 ? 'Free' : `$${fee.toFixed(2)}`;
+    document.getElementById('sum-total').textContent = fee === 0 ? 'Free delivery' : `Products + $${fee.toFixed(2)} delivery`;
+  } else {
+    document.getElementById('del-label').textContent = 'Delivery';
+    document.getElementById('del-val').textContent = '—';
+    document.getElementById('sum-total').textContent = '—';
+  }
+}
+
+async function lookupSKU(sku) {
+  const data = await shopifyGQL(
+    `query($q: String!) { productVariants(first: 1, query: $q) { edges { node { id title sku price compareAtPrice product { title } } } } }`,
+    { q: `sku:${sku}` }
+  );
+  const edge = data.productVariants?.edges?.[0];
+  if (!edge) throw new Error(`SKU not found: "${sku}"`);
+  return edge.node;
+}
+
+async function submitForm() {
+  let ok = true;
+  ['agent','channel','cname','cphone','area','payment','delivery'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    if (!el.value.trim()) { el.classList.add('error'); ok = false; } else el.classList.remove('error');
+  });
+  const filled = Object.keys(lines).filter(id => { const el = document.getElementById(`PL${id}`); return el && document.getElementById(`psku${id}`)?.value?.trim(); });
+  if (!filled.length) { showError('Please add at least one product SKU.'); return; }
+  if (!ok) { showError('Please fill in all required fields.'); return; }
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Looking up SKUs...';
+
+  const agent = gv('agent'), channel = gv('channel'), area = gv('area');
+  const pay = gv('payment'), delivery = gv('delivery');
+  const fee = FEES[delivery] !== undefined ? FEES[delivery] : 0;
+  const am = { whatsapp: 'whatsapp', instagram: 'staff', facebook: 'staff', phone: 'staff' };
+  const tags = [`assist:${am[channel]||'staff'}`, `source:${channel}`, `agent:${agent.toLowerCase()}`, 'channel:assisted_sales', 'created_by:internal_form'];
+  const fname = gv('cname').split(' ')[0] || 'Customer';
+  const lname = gv('cname').split(' ').slice(1).join(' ') || ' ';
+  const addr = (gv('address') || area).replace(/\n/g, ' ');
+  const email = gv('cemail');
+  const emailValid = email && email.includes('@') && email.split('@')[1]?.includes('.');
+
+  try {
+    const resolvedItems = [];
+    for (const id of filled) {
+      const sku = document.getElementById(`psku${id}`)?.value?.trim();
+      const qty = parseInt(document.getElementById(`pqty${id}`)?.value) || 1;
+      setStatus(`Looking up: ${sku}...`);
+      const variant = await lookupSKU(sku);
+      resolvedItems.push({ variant, qty, sku });
+    }
+
+    setStatus('Creating draft order...');
+
+    const productSummary = resolvedItems.map(i => `${i.variant.product.title} (${i.sku}) ×${i.qty}`).join(', ');
+    const note = `${channel.charAt(0).toUpperCase()+channel.slice(1)}-assisted order by ${agent}. Products: ${productSummary}. Intent: ${gv('intent')||'—'}. Payment: ${pay}. Delivery: ${delivery}. Area: ${area}.${gv('notes') ? ' Notes: '+gv('notes') : ''}`;
+
+    const lineItems = resolvedItems.map(i => {
+      const price = parseFloat(i.variant.price) || 0;
+      const cap = parseFloat(i.variant.compareAtPrice) || 0;
+      const disc = cap > price ? +(cap - price).toFixed(2) : 0;
+      const item = { variantId: i.variant.id, quantity: i.qty };
+      if (disc > 0) item.appliedDiscount = { value: String(disc), valueType: 'FIXED_AMOUNT', title: 'Product discount' };
+      return item;
+    });
+
+    const addrObj = { firstName: fname, lastName: lname, address1: addr, city: area, phone: gv('cphone'), countryCode: 'LB' };
+
+    const data = await shopifyGQL(`
+      mutation CreateDraftOrder($input: DraftOrderInput!) {
+        draftOrderCreate(input: $input) {
+          draftOrder { id name invoiceUrl }
+          userErrors { field message }
+        }
+      }`, {
+      input: {
+        lineItems,
+        ...(emailValid ? { email } : {}),
+        phone: gv('cphone'),
+        shippingAddress: addrObj,
+        billingAddress: addrObj,
+        shippingLine: { title: delivery, priceWithCurrency: { amount: fee.toFixed(2), currencyCode: 'USD' } },
+        note,
+        tags,
+        customAttributes: [
+          { key: 'assistance_channel', value: channel },
+          { key: 'agent_name', value: agent },
+          { key: 'customer_intent', value: gv('intent') },
+          { key: 'payment_preference', value: pay },
+          { key: 'delivery_area', value: area },
+          { key: 'delivery_method', value: delivery },
+          { key: 'conversation_reference', value: gv('ref') || '—' },
+          { key: 'requires_installation', value: togState.install ? 'yes' : 'no' },
+          { key: 'urgent_delivery', value: togState.urgent ? 'yes' : 'no' },
+          { key: 'customer_confirmed', value: togState.confirmed ? 'yes' : 'no' }
+        ]
+      }
+    });
+
+    const errs = data.draftOrderCreate?.userErrors;
+    if (errs && errs.length) throw new Error(errs.map(e => e.message).join(', '));
+    const order = data.draftOrderCreate?.draftOrder;
+    if (!order) throw new Error('Order creation failed');
+
+    const numericId = order.id.replace('gid://shopify/DraftOrder/', '');
+    const adminLink = `https://jad-b-2.myshopify.com/admin/draft_orders/${numericId}`;
+    const invoiceLink = order.invoiceUrl || adminLink;
+    const total = resolvedItems.reduce((s, i) => { const p = parseFloat(i.variant.price)||0; const c = parseFloat(i.variant.compareAtPrice)||0; const d = c>p?c-p:0; return s+(p-d)*i.qty; }, 0);
+
+    setStatus('');
+    document.getElementById('result-title').textContent = `✓ Draft order ${order.name} created`;
+    document.getElementById('r-admin').href = adminLink;
+    document.getElementById('r-admin-text').textContent = `${order.name} — open in Shopify admin`;
+    document.getElementById('r-invoice').href = invoiceLink;
+    document.getElementById('r-tags').innerHTML = tags.map(t => `<span class="tag">${t}</span>`).join('');
+    document.getElementById('result').classList.add('on');
+    document.getElementById('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    fetch(SHEETS_URL, { method: 'POST', body: JSON.stringify({
+      date: new Date().toLocaleString('en-GB'), agent, channel,
+      customer_name: gv('cname'), phone: gv('cphone'), email: gv('cemail'),
+      delivery_area: area, address: gv('address'),
+      products: resolvedItems.map(i => i.variant.product.title).join(' | '),
+      skus: resolvedItems.map(i => i.sku).join(' | '),
+      quantities: resolvedItems.map(i => i.qty).join(' | '),
+      order_total: `$${(total+fee).toFixed(2)}`,
+      delivery_fee: `$${fee.toFixed(2)}`, payment_method: pay, delivery_method: delivery,
+      intent: gv('intent'), requires_installation: togState.install?'yes':'no',
+      urgent: togState.urgent?'yes':'no', customer_confirmed: togState.confirmed?'yes':'no',
+      conv_ref: gv('ref'), notes: gv('notes'),
+      draft_order_name: order.name, admin_link: adminLink, invoice_link: invoiceLink, tags: tags.join(', ')
+    }) }).catch(() => {});
+
+    btn.innerHTML = '✓ Done'; btn.classList.add('success');
+  } catch(err) {
+    btn.disabled = false; btn.innerHTML = 'Create Draft Order';
+    setStatus('');
+    showError('Error: ' + err.message);
+  }
+}
+
+addLine();
+</script>
+</body>
+</html>
