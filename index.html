@@ -278,7 +278,7 @@ async function submitForm() {
   const agent = gv('agent'), channel = gv('channel'), area = gv('area');
   const pay = gv('payment'), delivery = gv('delivery');
   const fee = FEES[delivery] !== undefined ? FEES[delivery] : 0;
-  const am = { whatsapp: 'whatsapp', instagram: 'staff', facebook: 'staff', phone: 'staff' };
+  const am = { whatsapp: 'whatsapp', instagram: 'instagram', facebook: 'facebook', phone: 'phone' };
   const tags = [`assist:${am[channel]||'staff'}`, `agent:${agent.toLowerCase()}`, 'created_by:internal_form'];
   const fname = gv('cname').split(' ')[0] || 'Customer';
   const lname = gv('cname').split(' ').slice(1).join(' ') || ' ';
