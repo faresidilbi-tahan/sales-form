@@ -135,7 +135,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     <div class="section-title">Payment & Fulfillment</div>
     <div class="row">
       <div class="field"><label>Payment method *</label>
-        <select id="payment"><option value="">Select method</option><option value="Money transfer">Money transfer</option><option value="Credit Card">Credit Card</option><option value="Whish">Whish</option><option value="Cash on delivery">Cash on delivery</option></select>
+        <select id="payment"><option value="">Select method</option><option value="Money transfer">Money transfer</option><option value="Credit Card">Credit Card</option><option value="Whish">Whish</option><option value="Cash on delivery">Cash on delivery</option><option value="Pickup">Pickup</option></select>
       </div>
       <div class="field"><label>Delivery method *</label>
         <select id="delivery" onchange="calcSummary()">
@@ -144,6 +144,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
           <option value="Small Item, Outside Beirut">Small Item, Outside Beirut ($8)</option>
           <option value="Big Item">Big Item ($30)</option>
           <option value="Express Delivery">Express Delivery ($14)</option>
+          <option value="Pickup in store">Pickup in store (free)</option>
         </select>
       </div>
     </div>
@@ -173,7 +174,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 <script>
 const WORKER = 'https://delicate-smoke-ce37.abedtahanpromotions.workers.dev/';
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyiVHiwNZx5xau_DQOIt90u1026hd_9GvdmE4YJmGWL1VPWO4OOI-Ahe_UZmiT_r3M3/exec';
-const FEES = { 'Small Item, Inside Beirut': 5, 'Small Item, Outside Beirut': 8, 'Big Item': 30, 'Express Delivery': 14 };
+const FEES = { 'Small Item, Inside Beirut': 5, 'Small Item, Outside Beirut': 8, 'Big Item': 30, 'Express Delivery': 14, 'Pickup in store': 0 };
 let togState = { install: false, urgent: false };
 let lc = 0, lines = {};
 
