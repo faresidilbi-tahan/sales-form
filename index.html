@@ -74,6 +74,14 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
   <div class="error-box" id="error-box"></div>
 
   <div class="card">
+    <div class="section-title">Order Type</div>
+    <div class="tog-group">
+      <button class="tog on" id="type-delivery" onclick="setType('delivery')" type="button">Delivery</button>
+      <button class="tog" id="type-pickup" onclick="setType('pickup')" type="button">Pickup</button>
+    </div>
+  </div>
+
+  <div class="card">
     <div class="section-title">Agent & Source</div>
     <div class="row">
       <div class="field"><label>Agent *</label>
@@ -93,7 +101,7 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
     </div>
     <div class="row">
       <div class="field"><label>Email</label><input type="email" id="cemail" placeholder="Optional" /></div>
-      <div class="field"><label>Delivery area *</label>
+      <div class="field" id="area-field"><label>Delivery area *</label>
         <select id="area">
           <option value="">Select area</option>
           <optgroup label="Beirut">
@@ -133,9 +141,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
   <div class="card">
     <div class="section-title">Payment & Fulfillment</div>
-    <div class="row">
+    <div class="row" id="pay-row">
       <div class="field"><label>Payment method *</label>
-        <select id="payment"><option value="">Select method</option><option value="Money transfer">Money transfer</option><option value="Credit Card">Credit Card</option><option value="Whish">Whish</option><option value="Cash on delivery">Cash on delivery</option><option value="Pickup">Pickup</option></select>
+        <select id="payment"><option value="">Select method</option><option value="Money transfer">Money transfer</option><option value="Credit Card">Credit Card</option><option value="Whish">Whish</option><option value="Cash on delivery">Cash on delivery</option></select>
       </div>
       <div class="field"><label>Delivery method *</label>
         <select id="delivery" onchange="calcSummary()">
@@ -144,7 +152,6 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
           <option value="Small Item, Outside Beirut">Small Item, Outside Beirut ($8)</option>
           <option value="Big Item">Big Item ($30)</option>
           <option value="Express Delivery">Express Delivery ($14)</option>
-          <option value="Pickup in store">Pickup in store (free)</option>
         </select>
       </div>
     </div>
@@ -176,6 +183,21 @@ const WORKER = 'https://delicate-smoke-ce37.abedtahanpromotions.workers.dev/';
 const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyiVHiwNZx5xau_DQOIt90u1026hd_9GvdmE4YJmGWL1VPWO4OOI-Ahe_UZmiT_r3M3/exec';
 const FEES = { 'Small Item, Inside Beirut': 5, 'Small Item, Outside Beirut': 8, 'Big Item': 30, 'Express Delivery': 14, 'Pickup in store': 0 };
 let togState = { install: false, urgent: false };
+let orderType = 'delivery';
+
+function setType(t) {
+  orderType = t;
+  document.getElementById('type-delivery').classList.toggle('on', t === 'delivery');
+  document.getElementById('type-pickup').classList.toggle('on', t === 'pickup');
+  const hide = t === 'pickup' ? 'none' : '';
+  document.getElementById('area-field').style.display = hide;
+  document.getElementById('pay-row').style.display = hide;
+  ['area','payment','delivery'].forEach(id => document.getElementById(id).classList.remove('error'));
+  calcSummary();
+}
+function getDelivery() { return orderType === 'pickup' ? 'Pickup in store' : gv('delivery'); }
+function getPayment() { return orderType === 'pickup' ? 'Pickup' : gv('payment'); }
+function getArea() { return orderType === 'pickup' ? '' : gv('area'); }
 let lc = 0, lines = {};
 
 function togClick(btn, k) { togState[k] = !togState[k]; btn.classList.toggle('on', togState[k]); }
@@ -226,7 +248,7 @@ function addLine() {
 function removeLine(id) { document.getElementById(`PL${id}`)?.remove(); delete lines[id]; calcSummary(); }
 
 function calcSummary() {
-  const delivery = gv('delivery');
+  const delivery = getDelivery();
   const fee = FEES[delivery] !== undefined ? FEES[delivery] : null;
   const rows = [];
   Object.keys(lines).forEach(id => {
@@ -265,7 +287,8 @@ async function lookupSKU(sku) {
 
 async function submitForm() {
   let ok = true;
-  ['agent','channel','cname','cphone','area','payment','delivery'].forEach(id => {
+  const req = ['agent','channel','cname','cphone'].concat(orderType === 'delivery' ? ['area','payment','delivery'] : []);
+  req.forEach(id => {
     const el = document.getElementById(id); if (!el) return;
     if (!el.value.trim()) { el.classList.add('error'); ok = false; } else el.classList.remove('error');
   });
@@ -276,14 +299,14 @@ async function submitForm() {
   const btn = document.getElementById('submit-btn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span>Looking up SKUs...';
 
-  const agent = gv('agent'), channel = gv('channel'), area = gv('area');
-  const pay = gv('payment'), delivery = gv('delivery');
+  const agent = gv('agent'), channel = gv('channel'), area = getArea();
+  const pay = getPayment(), delivery = getDelivery();
   const fee = FEES[delivery] !== undefined ? FEES[delivery] : 0;
   const am = { whatsapp: 'whatsapp', instagram: 'instagram', facebook: 'facebook', phone: 'phone' };
   const tags = [`assist:${am[channel]||'staff'}`, `agent:${agent.toLowerCase()}`, 'created_by:internal_form'];
   const fname = gv('cname').split(' ')[0] || 'Customer';
   const lname = gv('cname').split(' ').slice(1).join(' ') || ' ';
-  const addr = (gv('address') || area).replace(/\n/g, ' ');
+  const addr = (gv('address') || area || 'Pickup in store').replace(/\n/g, ' ');
   const email = gv('cemail');
   const emailValid = email && email.includes('@') && email.split('@')[1]?.includes('.');
 
@@ -301,7 +324,7 @@ async function submitForm() {
     setStatus('Creating draft order...');
 
     const productSummary = resolvedItems.map(i => `${i.variant.product.title} (${i.sku}) ×${i.qty}${i.disc > 0 ? ` [-$${i.disc}]` : ''}`).join(', ');
-    const note = `${channel.charAt(0).toUpperCase()+channel.slice(1)}-assisted order by ${agent}. Products: ${productSummary}. Payment: ${pay}. Delivery: ${delivery}. Area: ${area}.${gv('notes') ? ' Notes: '+gv('notes') : ''}`;
+    const note = `${channel.charAt(0).toUpperCase()+channel.slice(1)}-assisted order by ${agent}. Products: ${productSummary}. Payment: ${pay}. Delivery: ${delivery}.${area ? ' Area: '+area+'.' : ''}${gv('notes') ? ' Notes: '+gv('notes') : ''}`;
 
     const lineItems = resolvedItems.map(i => {
       const item = { variantId: i.variant.id, quantity: i.qty };
@@ -328,6 +351,7 @@ async function submitForm() {
         note,
         tags,
         customAttributes: [
+          { key: 'order_type', value: orderType },
           { key: 'assistance_channel', value: channel },
           { key: 'agent_name', value: agent },
           { key: 'payment_preference', value: pay },
